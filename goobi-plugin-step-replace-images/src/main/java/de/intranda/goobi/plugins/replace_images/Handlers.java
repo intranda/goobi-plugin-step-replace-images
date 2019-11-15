@@ -1,22 +1,22 @@
 package de.intranda.goobi.plugins.replace_images;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.goobi.beans.Process;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import de.intranda.goobi.plugins.replace_images.model.GoobiImage;
 import de.sub.goobi.config.ConfigurationHelper;
-import de.sub.goobi.helper.StorageProvider;
-import de.sub.goobi.helper.StorageProviderInterface;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.extern.log4j.Log4j;
 import spark.Route;
@@ -33,6 +33,7 @@ import ugh.fileformats.slimjson.SlimDigitalDocument;
 public class Handlers {
     private static String title = "intranda_step_structure-data-editor";
     private static Gson gson = new Gson();
+    private static Type arrayListType = TypeToken.getParameterized(ArrayList.class, GoobiImage.class).getType();
 
     public static Route prefsForProcess = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
@@ -83,22 +84,28 @@ public class Handlers {
         return "";
     };
 
-    public static Route updateImage = (req, res) -> {
+    public static Route updateImages = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
-        String id = req.params("id");
-        GoobiImage newimage = gson.fromJson(req.body(), GoobiImage.class);
+        List<GoobiImage> newimages = gson.fromJson(req.body(), arrayListType);
+        Map<String, GoobiImage> idMap = new HashMap<>();
+        for (GoobiImage im : newimages) {
+            idMap.put(im.getId(), im);
+        }
 
-        DocStruct physDs = p.readMetadataFile().getDigitalDocument().getPhysicalDocStruct();
+        Fileformat ff = p.readMetadataFile();
+        DocStruct physDs = ff.getDigitalDocument().getPhysicalDocStruct();
 
         Prefs prefs = p.getRegelsatz().getPreferences();
 
         MetadataType idType = prefs.getMetadataTypeByName("ImageIdentifier");
         for (DocStruct ds : physDs.getAllChildren()) {
             String currId = ds.getAllMetadataByType(idType).get(0).getValue();
-            if (currId.equals(id)) {
-                ds.setImageName(newimage.getName());
+            GoobiImage im = idMap.get(currId);
+            if (im != null) {
+                ds.setImageName(im.getName());
             }
         }
+        p.writeMetadataFile(ff);
         return "";
     };
 
@@ -114,13 +121,4 @@ public class Handlers {
         return "";
     };
 
-    public static Route save = (req, res) -> {
-        Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
-        StorageProviderInterface sp = StorageProvider.getInstance();
-        Path pluginDir = Paths.get(p.getProcessDataDirectory());
-        try (InputStream is = new ByteArrayInputStream(req.bodyAsBytes())) {
-            sp.uploadFile(is, pluginDir.resolve("meta.json"));
-        }
-        return "";
-    };
 }

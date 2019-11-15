@@ -1,9 +1,10 @@
 <app>
 	<link rel="stylesheet" href="/goobi/plugins/{props.plugin_name}/css/style.css">
-	<table class="table">
+	<table class="table" style="margin-top: 30px;">
 		<thead>
 			<tr>
 				<th>Image</th>
+				<th>Filename</th>
 				<th>ID</th>
 				<th>Remark</th>
 			</tr>
@@ -16,6 +17,7 @@
 				ondragleave={e => dragLeave(e, image)}>
 				
 				<td><img class="replace-image" src="{image.url}"></td>
+				<td>{image.name}</td>
 				<td>{image.id}</td>
 				<td>{image.remark}</td>
 			</tr>
@@ -110,6 +112,17 @@
 	        }
 	    }
 	    if(allDone) {
+	        let newImages = [];
+	        for(var uploadFile of this.state.uploadFiles) {
+	            newImages.push({
+	                name: uploadFile.newName,
+	                id: uploadFile.origImage.id
+	            })
+	        }
+	        fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images`, {
+		        method: "PUT",
+		        body: JSON.stringify(newImages)
+		    })
 	        this.state.uploadFiles = [];
 	        this.update();
 	    }
@@ -164,10 +177,6 @@
 	        uploadFile.origImage.name = uploadFile.newName;
     		uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg`;
     		this.update();
-	    })
-	    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.id}`, {
-	        method: "PUT",
-	        body: JSON.stringify({name: uploadFile.newName})
 	    })
 	    this.uploadNext();
 	    this.update();

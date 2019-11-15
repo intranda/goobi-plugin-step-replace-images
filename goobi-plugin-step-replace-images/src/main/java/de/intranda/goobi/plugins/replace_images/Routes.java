@@ -11,6 +11,7 @@ public class Routes {
         http.path("/replaceimages", () -> {
             http.get("/process/:processid/images", Handlers.allImages, gson::toJson);
             http.delete("/process/:processid/images/:name", Handlers.deleteImage, gson::toJson);
+            http.put("/process/:processid/images", Handlers.updateImages, gson::toJson);
             http.post("/process/:processid/saveMets", Handlers.saveMets);
         });
     }
