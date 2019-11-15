@@ -1,0 +1,195 @@
+<app>
+	<link rel="stylesheet" href="/goobi/plugins/{props.plugin_name}/css/style.css">
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Image</th>
+				<th>ID</th>
+				<th>Remark</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr each={image in state.images} 
+				class="{image.hover ? 'hover' : ''}" 
+				ondragover={e => allowDrop(e, image)} 
+				ondrop={e => onDrop(e, image)} 
+				ondragleave={e => dragLeave(e, image)}>
+				
+				<td><img class="replace-image" src="{image.url}"></td>
+				<td>{image.id}</td>
+				<td>{image.remark}</td>
+			</tr>
+		</tbody>
+	</table>
+	  
+  <script>
+  import Thumbcanvas from './thumbcanvas.riot'
+  export default {
+	components: {
+		Thumbcanvas
+	},
+    onBeforeMount(props, state) {
+      this.state = {
+              msgs: {},
+              images: [],
+              uploadFiles: []
+      };
+      fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/images`).then(resp => {
+        resp.json().then(json => {
+          this.state.images = json;
+          for(let image of this.state.images) {
+              let url = `/goobi/api/image/${props.goobi_opts.processId}/master/${image.name}/full/!200,200/0/default.jpg`;
+              image.url = url;
+          }
+          console.log(this.state)
+          this.update();
+        })
+      })
+    },
+    onMounted(props, state) {
+      console.log("mounted");
+    },
+    onBeforeUpdate(props, state) {
+    },
+    onUpdated(props, state) {
+      
+    },
+    dragLeave(e, image) {
+        image.hover = false;
+        this.update();
+    },
+    allowDrop(e, image) {
+	    e.preventDefault();
+// 	    for(let idx=0; idx<this.state.images.length; idx++) {
+// 	        let otherIm = this.state.images[idx];
+// 	        	otherIm.hover = false;
+// 	    }
+	    image.hover = true;
+	    this.update();
+	},
+	onDrop(e, image) {
+	    e.preventDefault();
+	    image.hover = false;
+	    let files = e.dataTransfer.files;
+	    let foundIdx = -1;
+	     for(let idx=0; idx<this.state.images.length; idx++) {
+	        let otherIm = this.state.images[idx];
+	        if(otherIm.id == image.id) {
+	            foundIdx = idx;
+	        }
+	        if(foundIdx >= 0 && idx >= foundIdx && idx < foundIdx + files.length) {
+	            //otherIm.url = URL.createObjectURL(files[idx-foundIdx]);
+	            let fileToUpload = files[idx-foundIdx];
+	            fileToUpload.origImage = otherIm;
+	            fileToUpload.uploaded = 0;
+	            let newFileNameSuffix = fileToUpload.name.substring(fileToUpload.name.lastIndexOf("."));
+	            fileToUpload.newName = otherIm.name.substring(0, otherIm.name.lastIndexOf(".")) + newFileNameSuffix;
+	            this.state.uploadFiles.push(fileToUpload);
+	            console.log(otherIm, files[idx-foundIdx])
+	        }
+	    }
+	    this.uploadNext();
+        /*var ok = this.validateFilenames(items);
+        if(ok) {
+		    for(var i=0;i<items.length;i++) {
+		        items[i].uploaded=0;
+		        this.state.uploadFiles.push(items[i]);
+		    }
+		    for(var i=0;i< Math.min(this.state.uploadFiles.length, 5); i++){
+		        this.uploadNext();
+		    }
+        }*/
+        this.update();
+	},
+	checkAllDone() {
+	    var allDone = true
+	    for(var uploadFile of this.state.uploadFiles) {
+	        if(!uploadFile.done) {
+	            allDone = false;
+	            break;
+	        }
+	    }
+	    if(allDone) {
+	        this.state.uploadFiles = [];
+	        this.update();
+	    }
+	},
+	uploadNext() {
+	    var fileToUpload = null;
+	    var idx = 0;
+	    for(idx = 0; idx < this.state.uploadFiles.length; idx++) {
+	        if( !this.state.uploadFiles[idx].uploading ) {
+	            break;
+	        }
+	    }
+	    if(idx == this.state.uploadFiles.length) {
+	        this.checkAllDone();
+	        return;
+	    }
+	    var fileToUpload = this.state.uploadFiles[idx];
+	    var formData = new FormData();
+	    formData.append("file", fileToUpload);
+	    var xhr = new XMLHttpRequest();
+	    xhr.open("POST", `/goobi/api/processes/${this.props.goobi_opts.processId}/images/master`);
+	    xhr.uploadIdx = idx;
+	    xhr.upload.uploadIdx = idx;
+	    xhr.onerror = this.errorOnCurrent.bind(this);
+	    xhr.onreadystatechange = function() {
+	        console.log(xhr.readystate);
+	    }
+	    xhr.upload.ontimeout = this.errorOnCurrent.bind(this);
+	    xhr.upload.onprogress = this.progress.bind(this);
+	    xhr.onload = this.finishCurrentUpload.bind(this);
+	    fileToUpload.xhr = xhr;
+	    fileToUpload.uploading = true;
+	    xhr.send(formData);
+	},
+	progress(e) {
+	    this.state.uploadFiles[e.target.uploadIdx].uploaded = e.loaded;
+	    this.update();
+	},
+	finishCurrentUpload(e) {
+	    console.log(e);
+	    let uploadFile = this.state.uploadFiles[e.target.uploadIdx];
+    	uploadFile.done = true;
+	    if(e.target.status >= 400) {
+	        console.log("error detected!")
+	        var errorFile = this.state.uploadFiles[e.target.uploadIdx];
+	    	this.state.errorFiles.push({name: errorFile.name, error: "upload"});
+	    }
+	    //TODO: remove old filename and update METS
+	    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.name}`, {
+	        method: "DELETE"
+	    }).then(() => {
+	        uploadFile.origImage.name = uploadFile.newName;
+    		uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg`;
+    		this.update();
+	    })
+	    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.id}`, {
+	        method: "PUT",
+	        body: JSON.stringify({name: uploadFile.newName})
+	    })
+	    this.uploadNext();
+	    this.update();
+	},
+	errorOnCurrent(e) {
+	    console.log("error", e);
+	    // set error on current and abort uploading
+	    var errorFile = this.state.uploadFiles[e.target.uploadIdx];
+	    errorFile.done = true;
+	    this.state.errorFiles.push({name: errorFile.name, error: "upload"});
+	    this.uploadNext();
+	    this.update();
+	},
+    msg(str) {
+      if(Object.keys(this.state.msgs).length == 0) {
+          return "*".repeat(str.length);
+      }
+      if(this.state.msgs[str]) {
+        return this.state.msgs[str];
+      }
+      return "???" + str + "???";
+    }
+  }
+  </script>
+</app>

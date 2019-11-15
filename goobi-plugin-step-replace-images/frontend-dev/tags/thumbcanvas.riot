@@ -1,0 +1,99 @@
+<thumbcanvas>
+	<canvas class="thumb-canvas" width={props.width} height={props.height} ></canvas>
+	<script>
+	export default {
+	onBeforeMount() {
+		this.state = {
+			mouseover: false,
+			imageUrl: null
+		}
+	},
+	onMounted() {
+		this.canvas = this.$('canvas');
+		this.canvas.addEventListener("mousemove", this.mousemove.bind(this))
+		this.canvas.addEventListener("mouseout", this.mouseout.bind(this))
+	    if(this.props.imageUrl) {
+	    	this.state.imageUrl = this.props.imageUrl;
+			this.drawOnCanvas();
+	    }
+	},
+	onUpdated() {
+		if(this.props.imageUrl && !this.state.imageUrl) {
+	    	this.state.imageUrl = this.props.imageUrl;
+			this.drawOnCanvas();
+	    }
+	},
+	drawOnCanvas() {
+        if ( this.canvas == null ) {
+            return;
+        }
+        var ctx = this.canvas.getContext( '2d' );
+        var img = new Image();
+        img.onload = () => {
+	        this.image = img;
+            ctx.drawImage( img, 0, 0, this.props.width, this.props.height );
+            
+        };
+        // console.log(image);
+        img.src = this.state.imageUrl;
+	},
+	
+	mouseout( event ) {
+	    this.state.mouseover = false;
+	    this.drawOnCanvas( event.currentTarget );
+	},
+
+	getMousePos( canvas, event ) {
+	    var rect = canvas.getBoundingClientRect();
+	    return {
+	        x: event.clientX - rect.left,
+	        y: event.clientY - rect.top
+	    };
+	},
+
+	mousemove( event ) {
+	    if(!event.shiftKey && !event.getModifierState('CapsLock')) {
+	        if(this.state.mouseover) {
+	        	this.state.mouseover = false;
+	        	this.drawOnCanvas()
+	        }
+	        return;
+	    } else {
+	        console.log("shift");
+	    }
+	    this.state.mouseover = true;
+	    if(this.image) {
+	    	this.drawLarge(event);
+	    } else {
+	    	console.log("no image")
+	    }
+	},
+	
+	drawLarge(event) {
+	   	var img = this.image;
+	    var canvas = event.currentTarget;
+	    var absPos = this.getMousePos( canvas, event );
+        var relPos = {x:absPos.x/canvas.offsetWidth, y:absPos.y/canvas.offsetHeight};
+        var sourceWidth = this.props.width;
+        var sourceHeight = this.props.height;
+        var sourceX = img.naturalWidth*relPos.x - sourceWidth/2;
+        var sourceY = img.naturalHeight*relPos.y - sourceHeight/2;
+        if(sourceWidth > img.naturalWidth || sourceX < 0) {
+            sourceX = 0;
+        } else if(sourceX+sourceWidth > img.naturalWidth) {
+            sourceX = img.naturalWidth-sourceWidth;
+        }
+        if(sourceHeight > img.naturalHeight || sourceY < 0) {
+            sourceY = 0;
+        } else if(sourceY+sourceHeight > img.naturalHeight) {
+            sourceY = img.naturalHeight-sourceHeight;
+        }
+        if(!this.state.mouseover) {
+            return;
+        }
+        var ctx = canvas.getContext( '2d' );
+        ctx.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+	}
+	}
+	</script>
+</thumbcanvas>
