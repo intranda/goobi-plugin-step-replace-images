@@ -34,7 +34,8 @@
       this.state = {
               msgs: {},
               images: [],
-              uploadFiles: []
+              uploadFiles: [],
+              errorFiles: []
       };
       fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/images`).then(resp => {
         resp.json().then(json => {
@@ -142,6 +143,7 @@
 	    var fileToUpload = this.state.uploadFiles[idx];
 	    var formData = new FormData();
 	    formData.append("file", fileToUpload);
+	    formData.append("filename", fileToUpload.newName)
 	    var xhr = new XMLHttpRequest();
 	    xhr.open("POST", `/goobi/api/processes/${this.props.goobi_opts.processId}/images/master`);
 	    xhr.uploadIdx = idx;
@@ -171,13 +173,19 @@
 	    	this.state.errorFiles.push({name: errorFile.name, error: "upload"});
 	    }
 	    //TODO: remove old filename and update METS
-	    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.name}`, {
-	        method: "DELETE"
-	    }).then(() => {
-	        uploadFile.origImage.name = uploadFile.newName;
-    		uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg`;
-    		this.update();
-	    })
+	    if(uploadFile.origImage.name != uploadFile.newName) {
+		    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.name}`, {
+		        method: "DELETE"
+		    }).then(() => {
+		        uploadFile.origImage.name = uploadFile.newName;
+		        let time = new Date().getTime();
+	    		uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	    		this.update();
+		    })
+	    } else {
+	        let time = new Date().getTime();
+	        uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	    }
 	    this.uploadNext();
 	    this.update();
 	},
