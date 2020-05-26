@@ -1,28 +1,42 @@
 <app>
 	<link rel="stylesheet" href="/goobi/plugins/{props.plugin_name}/css/style.css">
-	<table class="table" style="margin-top: 30px;">
-		<thead>
-			<tr>
-				<th>Image</th>
-				<th>Filename</th>
-				<th>ID</th>
-				<th>Remark</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr each={image in state.images} 
-				class="{image.hover ? 'hover' : ''}" 
-				ondragover={e => allowDrop(e, image)} 
-				ondrop={e => onDrop(e, image)} 
-				ondragleave={e => dragLeave(e, image)}>
-				
-				<td><img class="replace-image" src="{image.url}"></td>
-				<td>{image.name}</td>
-				<td>{image.id}</td>
-				<td>{image.remark}</td>
-			</tr>
-		</tbody>
-	</table>
+	<div class="box box-color lightgrey box-bordered">
+         <div class="box-title">
+             <h3>
+                 <i class="fa fa-puzzle-piece"></i>
+                 {msg('plugin_replaceImages')}
+             </h3>
+             <div class="actions">
+				<a class="btn btn-mini btn-default" onclick={leave}>{msg('plugin_replaceimages_saveAndExit')}</a>
+             </div>
+         </div>
+
+         <div class="box-content" style="background-color:#eee">
+			<table class="table" style="margin-top: 30px;">
+				<thead>
+					<tr>
+						<th>{msg('plugin_replaceimages_image')}</th>
+						<th>{msg('plugin_replaceimages_filename')}</th>
+						<th>ID</th>
+						<th>{msg('plugin_replaceimages_remark')}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr each={image in state.images} 
+						class="{image.hover ? 'hover' : ''}" 
+						ondragover={e => allowDrop(e, image)} 
+						ondrop={e => onDrop(e, image)} 
+						ondragleave={e => dragLeave(e, image)}>
+						
+						<td><img class="replace-image" src="{image.url}"></td>
+						<td>{image.name}</td>
+						<td>{image.id}</td>
+						<td>{image.remark}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
 	  
   <script>
   import Thumbcanvas from './thumbcanvas.riot'
@@ -47,7 +61,16 @@
           console.log(this.state)
           this.update();
         })
-      })
+      });
+      fetch(`/goobi/api/messages/${props.goobi_opts.language}`, {
+          method: 'GET',
+          credentials: 'same-origin'
+      }).then(resp => {
+        resp.json().then(json => {
+          this.state.msgs = json;
+          this.update();
+        })
+      });
     },
     onMounted(props, state) {
       console.log("mounted");
