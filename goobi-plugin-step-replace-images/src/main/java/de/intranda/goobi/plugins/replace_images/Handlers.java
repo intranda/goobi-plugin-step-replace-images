@@ -67,7 +67,13 @@ public class Handlers {
             if (remarkMeta != null && !remarkMeta.isEmpty()) {
                 remark = remarkMeta.get(0).getValue();
             }
-            String id = ds.getAllMetadataByType(idType).get(0).getValue();
+            List<Metadata> idMeta = (List<Metadata>) ds.getAllMetadataByType(idType);
+            String id = "";
+            if (idMeta != null && !idMeta.isEmpty()) {
+                id = idMeta.get(0).getValue();
+            } else {
+                id = ds.getAllMetadataByType(prefs.getMetadataTypeByName("physPageNumber")).get(0).getValue();
+            }
 
             images.add(new GoobiImage(ds.getImageName(), "master", id, remark));
         }
@@ -84,6 +90,7 @@ public class Handlers {
         return "";
     };
 
+    @SuppressWarnings("unchecked")
     public static Route updateImages = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
         List<GoobiImage> newimages = gson.fromJson(req.body(), arrayListType);
@@ -98,10 +105,18 @@ public class Handlers {
         Prefs prefs = p.getRegelsatz().getPreferences();
 
         MetadataType idType = prefs.getMetadataTypeByName("ImageIdentifier");
+        MetadataType physNumType = prefs.getMetadataTypeByName("physPageNumber");
+
         for (DocStruct ds : physDs.getAllChildren()) {
-            String currId = ds.getAllMetadataByType(idType).get(0).getValue();
+            List<Metadata> idList = (List<Metadata>) ds.getAllMetadataByType(idType);
+            if (idList == null || idList.isEmpty()) {
+                idList = (List<Metadata>) ds.getAllMetadataByType(physNumType);
+            }
+            String currId = idList.get(0).getValue();
             GoobiImage im = idMap.get(currId);
             if (im != null) {
+                String oldImagename = ds.getImageName();
+                Files.deleteIfExists(Paths.get(oldImagename));
                 ds.setImageName(im.getName());
             }
         }

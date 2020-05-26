@@ -6,5 +6,12 @@
 			<arg value="package" />
 		</exec>
 		<copy file="target/plugin_intranda_step_replace-images.jar" todir="/opt/digiverso/goobi/plugins/step/"/>
+		<exec executable="curl">
+			<arg value="-X"/>
+			<arg value="PUT"/>
+			<arg value="http://localhost:8080/goobi/plugins/reload"/>
+			<arg value="-H"/>
+			<arg value="token: geheim"/>
+		</exec>
 	</target>
 </project>
