@@ -20,7 +20,7 @@ Detail | Description
 
 ## Installation
 
-This plugin can be installed by extracting the plugin package `plugin_intranda_step_replace-images.tar`:
+This plugin can be installed by extracting the plugin package `plugin_intranda_step_replace-images.tar` into your Goobi directory:
 
 ```bash
 tar -C /opt/digiverso/goobi/ -xvf plugin_intranda_step_replace-images.tar --exclude="pom.xml"
