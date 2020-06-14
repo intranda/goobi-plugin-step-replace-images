@@ -1,8 +1,8 @@
-# Goobi workflow Plugin: goobi-plugin-opac-json
+# Goobi workflow Plugin: goobi-plugin-step-replace-images
 
 <img src="https://goobi.io/wp-content/uploads/logo_goobi_plugin.png" align="right" style="margin:0 0 20px 20px;" alt="Plugin for Goobi workflow" width="175" height="109">
 
-Step plugin to replace images in a goobi process.
+Step plugin for Goobi workflow to replace placeholder images with real images inside of the master folder.
 
 This is a plugin for Goobi workflow, the open source workflow tracking software for digitisation projects. More information about Goobi workflow is available under https://goobi.io. If you want to get in touch with the user community simply go to https://community.goobi.io.
 
@@ -13,18 +13,10 @@ More information about the functionality of this plugin and the complete documen
 Detail | Description
 --- | ---
 **Plugin identifier**       | intranda_step_replace-images
-**Plugin type**             | Opac plugin
-**Licence**                 | GPL 2.0 or newer
-**Documentation (German)**  | 
-**Documentation (English)** | 
-
-## Installation
-
-This plugin can be installed by extracting the plugin package `plugin_intranda_step_replace-images.tar` into your Goobi directory:
-
-```bash
-tar -C /opt/digiverso/goobi/ -xvf plugin_intranda_step_replace-images.tar --exclude="pom.xml"
-```
+**Plugin type**             | Step plugin
+**Licence**                 | GPL 2.0 or newer  
+**Documentation (German)**  | https://docs.goobi.io/goobi-workflow-plugins-de/step/intranda_step_replace-images
+**Documentation (English)** | https://docs.goobi.io/goobi-workflow-plugins-en/step/intranda_step_replace-images
 
 ## Goobi details
 
@@ -46,4 +38,3 @@ Contact | Details
 **Address**       | Bertha-von-Suttner-Str. 9, 37085 Göttingen, Germany
 **Web site**      | https://www.intranda.com
 **Twitter**       | https://twitter.com/intranda
-
