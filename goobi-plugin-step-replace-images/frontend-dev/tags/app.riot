@@ -26,9 +26,16 @@
 						class="{image.hover ? 'hover' : ''}" 
 						ondragover={e => allowDrop(e, image)} 
 						ondrop={e => onDrop(e, image)} 
-						ondragleave={e => dragLeave(e, image)}>
-						
-						<td><img class="replace-image" src="{image.url}"></td>
+						ondragleave={e => dragLeave(e, image)}
+                        >
+                        
+						<td>
+                            <div style="position: relative; display: inline-block">
+                                <span if={image.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {image.uploaded}%; background: rgba(0,0,0,0.3)"></span>
+                                <img class="replace-image" src="{image.url}">
+                            </div>
+<!--                             <progress if={image.uploaded} max="100" value={image.uploaded}></progress> -->
+                        </td>
 						<td>{image.name}</td>
 						<td>{image.id}</td>
 						<td>{image.remark}</td>
@@ -107,6 +114,7 @@
 	            //otherIm.url = URL.createObjectURL(files[idx-foundIdx]);
 	            let fileToUpload = files[idx-foundIdx];
 	            fileToUpload.origImage = otherIm;
+	            fileToUpload.origImageIdx = idx;
 	            fileToUpload.uploaded = 0;
 	            let newFileNameSuffix = fileToUpload.name.substring(fileToUpload.name.lastIndexOf("."));
 	            fileToUpload.newName = otherIm.name.substring(0, otherIm.name.lastIndexOf(".")) + newFileNameSuffix;
@@ -183,7 +191,12 @@
 	    xhr.send(formData);
 	},
 	progress(e) {
-	    this.state.uploadFiles[e.target.uploadIdx].uploaded = e.loaded;
+	    let uploadFile = this.state.uploadFiles[e.target.uploadIdx];
+	    let percentLoaded = (e.loaded/e.total) * 100;
+	    if(percentLoaded == 100) {
+	    	percentLoaded = null;
+	    } 
+    	this.state.images[uploadFile.origImageIdx].uploaded = percentLoaded;
 	    this.update();
 	},
 	finishCurrentUpload(e) {
@@ -194,6 +207,7 @@
 	        console.log("error detected!")
 	        var errorFile = this.state.uploadFiles[e.target.uploadIdx];
 	    	this.state.errorFiles.push({name: errorFile.name, error: "upload"});
+	    	return;
 	    }
 	    //TODO: remove old filename and update METS
 	    if(uploadFile.origImage.name != uploadFile.newName) {
