@@ -7,8 +7,20 @@
                  {msg('plugin_replaceImages')}
              </h3>
              <div class="actions">
-                <a class="btn btn-mini btn-default" onclick={leaveAndCloseTask} aria-label="{msg('plugin_replaceimages_exitAndFinishTask')}" if={!props.goobi_opts.pluginSimulation}><i class="fa fa-check"></i></a>
-				<a class="btn btn-mini btn-default" onclick={leave} aria-label="{msg('plugin_replaceimages_saveAndExit')}"><i class="fa fa-close"></i></a>
+                <a 
+                    class="btn btn-mini btn-default" 
+                    onclick={leaveAndCloseTask} 
+                    title="{msg('task_leavePluginAndFinishTask')}" 
+                    aria-label="{msg('task_leavePluginAndFinishTask')}" 
+                    if={!props.goobi_opts.pluginSimulation}>
+                        <i class="fa fa-check"></i>
+                </a>
+				<a 
+                    class="btn btn-mini btn-default" 
+                    onclick={leave} title="{msg('plugin_replaceimages_saveAndExit')}" 
+                    aria-label="{msg('plugin_replaceimages_saveAndExit')}">
+                        <i class="fa fa-close"></i>
+                </a>
              </div>
          </div>
 
@@ -47,13 +59,20 @@
     <br>
     
     <!-- Save and finish the task -->
-    <a class="btn btn-green font-size-s" id="finishAndClose" onclick={leaveAndCloseTask} if={!props.goobi_opts.pluginSimulation}>
+    <a class="btn btn-green font-size-s" 
+        id="finishAndClose" 
+        onclick={leaveAndCloseTask} 
+        title="{msg('task_leavePluginAndFinishTask')}" 
+        if={!props.goobi_opts.pluginSimulation}>
         <i class="fa fa-check margin-right-5"></i>
         {msg('task_leavePluginAndFinishTask')}
     </a>
      
     <!-- Save -->
-    <a class="btn btn-lightgrey pull-right font-size-s" id="absenden" onclick={leave}>
+    <a class="btn btn-lightgrey pull-right font-size-s" 
+        id="absenden" 
+        onclick={leave}
+        title="{msg('pluginLeave')}">
         <i class="fa fa-close margin-right-5"></i>
         {msg('pluginLeave')}
     </a>
