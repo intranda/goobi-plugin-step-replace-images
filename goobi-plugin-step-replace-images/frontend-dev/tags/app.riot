@@ -7,7 +7,8 @@
                  {msg('plugin_replaceImages')}
              </h3>
              <div class="actions">
-				<a class="btn btn-mini btn-default" onclick={leave}>{msg('plugin_replaceimages_saveAndExit')}</a>
+                <a class="btn btn-mini btn-default" onclick={leaveAndCloseTask} aria-label="{msg('plugin_replaceimages_exitAndFinishTask')}" if={!props.goobi_opts.pluginSimulation}><i class="fa fa-check"></i></a>
+				<a class="btn btn-mini btn-default" onclick={leave} aria-label="{msg('plugin_replaceimages_saveAndExit')}"><i class="fa fa-close"></i></a>
              </div>
          </div>
 
@@ -34,7 +35,6 @@
                                 <span if={image.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {image.uploaded}%; background: rgba(0,0,0,0.3)"></span>
                                 <img class="replace-image" src="{image.url}">
                             </div>
-<!--                             <progress if={image.uploaded} max="100" value={image.uploaded}></progress> -->
                         </td>
 						<td>{image.name}</td>
 						<td>{image.id}</td>
@@ -44,7 +44,22 @@
 			</table>
 		</div>
 	</div>
-	  
+    <br>
+    
+    <!-- Save and finish the task -->
+    <a class="btn btn-green font-size-s" id="finishAndClose" onclick={leaveAndCloseTask} if={!props.goobi_opts.pluginSimulation}>
+        <i class="fa fa-check margin-right-5"></i>
+        {msg('task_leavePluginAndFinishTask')}
+    </a>
+     
+    <!-- Save -->
+    <a class="btn btn-lightgrey pull-right font-size-s" id="absenden" onclick={leave}>
+        <i class="fa fa-close margin-right-5"></i>
+        {msg('pluginLeave')}
+    </a>
+    <br>
+    <br>
+      
   <script>
   import Thumbcanvas from './thumbcanvas.riot'
   export default {
@@ -93,10 +108,6 @@
     },
     allowDrop(e, image) {
 	    e.preventDefault();
-// 	    for(let idx=0; idx<this.state.images.length; idx++) {
-// 	        let otherIm = this.state.images[idx];
-// 	        	otherIm.hover = false;
-// 	    }
 	    image.hover = true;
 	    this.update();
 	},
@@ -158,6 +169,12 @@
 	        this.state.uploadFiles = [];
 	        this.update();
 	    }
+	},
+	leave() {
+		document.getElementById("restPluginFinishLink").click();
+	},
+	leaveAndCloseTask() {
+		document.getElementById("restPluginCloseStepLink").click();
 	},
 	uploadNext() {
 	    var fileToUpload = null;
