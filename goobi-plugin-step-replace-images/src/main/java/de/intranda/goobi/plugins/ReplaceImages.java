@@ -25,7 +25,7 @@ import spark.Service;
 public class ReplaceImages implements IRestGuiPlugin {
     private Step step;
     private String returnPath;
-    private String title = "intranda_step_replace-images";
+    public static String TITLE = "intranda_step_replace-images";
 
     @Override
     public void extractAssets(Path assetsDir) {
@@ -36,7 +36,7 @@ public class ReplaceImages implements IRestGuiPlugin {
     }
 
     private void extractFile(String filePath, Path assetsDir) {
-        Path out = assetsDir.resolve("plugins").resolve(title).resolve(filePath);
+        Path out = assetsDir.resolve("plugins").resolve(TITLE).resolve(filePath);
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("/frontend/" + filePath)) {
             if (!Files.exists(out.getParent())) {
                 Files.createDirectories(out.getParent());
@@ -104,6 +104,11 @@ public class ReplaceImages implements IRestGuiPlugin {
     public void initRoutes(Service http) {
         Routes.initRoutes(http);
 
+    }
+
+    @Override
+    public String getTitle() {
+        return TITLE;
     }
 
 }

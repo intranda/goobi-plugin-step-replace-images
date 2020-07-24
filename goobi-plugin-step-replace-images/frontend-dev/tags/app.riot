@@ -28,24 +28,26 @@
 			<table class="table" style="margin-top: 30px;">
 				<thead>
 					<tr>
-						<th>{msg('plugin_replaceimages_image')}</th>
+						<th each={imageNature in state.images[0].natures}>
+                            {msg('images')} ({imageNature.folder})
+                        </th>
 						<th>{msg('plugin_replaceimages_filename')}</th>
 						<th>ID</th>
 						<th>{msg('plugin_replaceimages_remark')}</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr each={image in state.images} 
-						class="{image.hover ? 'hover' : ''}" 
-						ondragover={e => allowDrop(e, image)} 
-						ondrop={e => onDrop(e, image)} 
-						ondragleave={e => dragLeave(e, image)}
-                        >
+					<tr each={image in state.images}>
                         
-						<td>
+						<td each={imageNature in image.natures}
+                            class="{imageNature.hover ? 'hover' : ''}" 
+                            ondragover={e => allowDrop(e, imageNature)}
+                            ondrop={e => onDrop(e, imageNature)}
+                            ondragleave={e => dragLeave(e, imageNature)}
+                        >
                             <div style="position: relative; display: inline-block">
-                                <span if={image.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {image.uploaded}%; background: rgba(0,0,0,0.3)"></span>
-                                <img class="replace-image" src="{image.url}">
+                                <span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
+                                <img class="replace-image" src="{imageNature.url}">
                             </div>
                         </td>
 						<td>{image.name}</td>
@@ -88,7 +90,7 @@
     onBeforeMount(props, state) {
       this.state = {
               msgs: {},
-              images: [],
+              images: [{}],
               uploadFiles: [],
               errorFiles: []
       };
@@ -96,8 +98,10 @@
         resp.json().then(json => {
           this.state.images = json;
           for(let image of this.state.images) {
-              let url = `/goobi/api/image/${props.goobi_opts.processId}/master/${image.name}/full/!200,200/0/default.jpg`;
-              image.url = url;
+        	  for(let nature of image.natures) {
+                  let url = `/goobi/api/image/${props.goobi_opts.processId}/${nature.folder}/${image.name}/full/!200,200/0/default.jpg`;
+                  nature.url = url;
+        	  }
           }
           console.log(this.state)
           this.update();
@@ -126,6 +130,7 @@
         this.update();
     },
     allowDrop(e, image) {
+    	console.log("what is happening here??")
 	    e.preventDefault();
 	    image.hover = true;
 	    this.update();
@@ -153,16 +158,6 @@
 	        }
 	    }
 	    this.uploadNext();
-        /*var ok = this.validateFilenames(items);
-        if(ok) {
-		    for(var i=0;i<items.length;i++) {
-		        items[i].uploaded=0;
-		        this.state.uploadFiles.push(items[i]);
-		    }
-		    for(var i=0;i< Math.min(this.state.uploadFiles.length, 5); i++){
-		        this.uploadNext();
-		    }
-        }*/
         this.update();
 	},
 	checkAllDone() {

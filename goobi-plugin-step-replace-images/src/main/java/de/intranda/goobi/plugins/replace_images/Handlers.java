@@ -6,16 +6,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.apache.commons.configuration.XMLConfiguration;
 import org.goobi.beans.Process;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import de.intranda.goobi.plugins.ReplaceImages;
 import de.intranda.goobi.plugins.replace_images.model.GoobiImage;
+import de.intranda.goobi.plugins.replace_images.model.ImageNature;
+import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
 import de.sub.goobi.persistence.managers.ProcessManager;
 import lombok.extern.log4j.Log4j;
@@ -53,6 +59,11 @@ public class Handlers {
     public static Route allImages = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
 
+        XMLConfiguration pluginConfig = ConfigPlugins.getPluginConfig(ReplaceImages.TITLE);
+        List<ImageNature> imageNatures = Arrays.stream(pluginConfig.getStringArray("imageFolder"))
+                .map(ImageNature::new)
+                .collect(Collectors.toList());
+
         DocStruct physDs = p.readMetadataFile().getDigitalDocument().getPhysicalDocStruct();
 
         Prefs prefs = p.getRegelsatz().getPreferences();
@@ -75,7 +86,7 @@ public class Handlers {
                 id = ds.getAllMetadataByType(prefs.getMetadataTypeByName("physPageNumber")).get(0).getValue();
             }
 
-            images.add(new GoobiImage(ds.getImageName(), "master", id, remark));
+            images.add(new GoobiImage(ds.getImageName(), id, remark, imageNatures));
         }
 
         //        XMLConfiguration conf = ConfigPlugins.getPluginConfig(title);
