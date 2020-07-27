@@ -42,7 +42,7 @@
 						<td each={imageNature in image.natures}
                             class="{imageNature.hover ? 'hover' : ''}" 
                             ondragover={e => allowDrop(e, imageNature)}
-                            ondrop={e => onDrop(e, imageNature)}
+                            ondrop={e => onDrop(e, image, imageNature)}
                             ondragleave={e => dragLeave(e, imageNature)}
                         >
                             <div style="position: relative; display: inline-block">
@@ -94,12 +94,13 @@
               uploadFiles: [],
               errorFiles: []
       };
-      fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/images`).then(resp => {
+      console.log(props.goobi_opts)
+      fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
         resp.json().then(json => {
           this.state.images = json;
           for(let image of this.state.images) {
         	  for(let nature of image.natures) {
-                  let url = `/goobi/api/image/${props.goobi_opts.processId}/${nature.folder}/${image.name}/full/!200,200/0/default.jpg`;
+                  let url = `/goobi/api/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
                   nature.url = url;
         	  }
           }
@@ -135,13 +136,15 @@
 	    image.hover = true;
 	    this.update();
 	},
-	onDrop(e, image) {
+	onDrop(e, image, imageNature) {
 	    e.preventDefault();
-	    image.hover = false;
+	    console.log(image, imageNature);
+	    imageNature.hover = false;
 	    let files = e.dataTransfer.files;
 	    let foundIdx = -1;
 	     for(let idx=0; idx<this.state.images.length; idx++) {
 	        let otherIm = this.state.images[idx];
+	        let otherNature = otherIm.natures.filter(nature => nature.folder == imageNature.folder)[0]
 	        if(otherIm.id == image.id) {
 	            foundIdx = idx;
 	        }
@@ -150,9 +153,10 @@
 	            let fileToUpload = files[idx-foundIdx];
 	            fileToUpload.origImage = otherIm;
 	            fileToUpload.origImageIdx = idx;
+	            fileToUpload.nature = otherNature;
 	            fileToUpload.uploaded = 0;
 	            let newFileNameSuffix = fileToUpload.name.substring(fileToUpload.name.lastIndexOf("."));
-	            fileToUpload.newName = otherIm.name.substring(0, otherIm.name.lastIndexOf(".")) + newFileNameSuffix;
+	            fileToUpload.newName = otherIm.name + newFileNameSuffix;
 	            this.state.uploadFiles.push(fileToUpload);
 	            console.log(otherIm, files[idx-foundIdx])
 	        }
@@ -207,7 +211,7 @@
 	    formData.append("file", fileToUpload);
 	    formData.append("filename", fileToUpload.newName)
 	    var xhr = new XMLHttpRequest();
-	    xhr.open("POST", `/goobi/api/processes/${this.props.goobi_opts.processId}/images/master`);
+	    xhr.open("POST", `/goobi/api/processes/${this.props.goobi_opts.processId}/images/${fileToUpload.nature.folder}`);
 	    xhr.uploadIdx = idx;
 	    xhr.upload.uploadIdx = idx;
 	    xhr.onerror = this.errorOnCurrent.bind(this);
@@ -227,10 +231,12 @@
 	    if(percentLoaded == 100) {
 	    	percentLoaded = null;
 	    } 
-    	this.state.images[uploadFile.origImageIdx].uploaded = percentLoaded;
+    	//this.state.images[uploadFile.origImageIdx].uploaded = percentLoaded;
+    	uploadFile.nature.uploaded = percentLoaded;
 	    this.update();
 	},
 	finishCurrentUpload(e) {
+		this.update();
 	    console.log(e);
 	    let uploadFile = this.state.uploadFiles[e.target.uploadIdx];
     	uploadFile.done = true;
@@ -241,18 +247,18 @@
 	    	return;
 	    }
 	    //TODO: remove old filename and update METS
-	    if(uploadFile.origImage.name != uploadFile.newName) {
-		    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.origImage.name}`, {
+	    if(uploadFile.nature.name != uploadFile.newName) {
+		    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.nature.folder}/${uploadFile.nature.name}`, {
 		        method: "DELETE"
 		    }).then(() => {
-		        uploadFile.origImage.name = uploadFile.newName;
+		        uploadFile.nature.name = uploadFile.newName;
 		        let time = new Date().getTime();
-	    		uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	    		uploadFile.nature.url = `/goobi/api/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    		this.update();
 		    })
 	    } else {
 	        let time = new Date().getTime();
-	        uploadFile.origImage.url = `/goobi/api/image/${this.props.goobi_opts.processId}/master/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	        uploadFile.nature.url = `/goobi/api/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    }
 	    this.uploadNext();
 	    this.update();

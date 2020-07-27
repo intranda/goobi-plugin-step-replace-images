@@ -7,4 +7,5 @@ import lombok.Data;
 @AllArgsConstructor
 public class ImageNature {
     private String folder;
+    private String name;
 }

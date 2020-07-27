@@ -1,7 +1,9 @@
 package de.intranda.goobi.plugins.replace_images;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +14,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.reloading.FileChangedReloadingStrategy;
+import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.goobi.beans.Process;
 
 import com.google.gson.Gson;
@@ -23,7 +28,10 @@ import de.intranda.goobi.plugins.replace_images.model.GoobiImage;
 import de.intranda.goobi.plugins.replace_images.model.ImageNature;
 import de.sub.goobi.config.ConfigPlugins;
 import de.sub.goobi.config.ConfigurationHelper;
+import de.sub.goobi.helper.exceptions.DAOException;
+import de.sub.goobi.helper.exceptions.SwapException;
 import de.sub.goobi.persistence.managers.ProcessManager;
+import de.sub.goobi.persistence.managers.StepManager;
 import lombok.extern.log4j.Log4j;
 import spark.Route;
 import ugh.dl.DigitalDocument;
@@ -37,9 +45,9 @@ import ugh.fileformats.slimjson.SlimDigitalDocument;
 
 @Log4j
 public class Handlers {
-    private static String title = "intranda_step_structure-data-editor";
     private static Gson gson = new Gson();
     private static Type arrayListType = TypeToken.getParameterized(ArrayList.class, GoobiImage.class).getType();
+    private static XMLConfiguration pluginConfig;
 
     public static Route prefsForProcess = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
@@ -58,10 +66,14 @@ public class Handlers {
     @SuppressWarnings("unchecked")
     public static Route allImages = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
+        int stepId = Integer.parseInt(req.params("stepId"));
+        String stepTitle = StepManager.getStepById(stepId).getTitel();
 
-        XMLConfiguration pluginConfig = ConfigPlugins.getPluginConfig(ReplaceImages.TITLE);
-        List<ImageNature> imageNatures = Arrays.stream(pluginConfig.getStringArray("imageFolder"))
-                .map(ImageNature::new)
+        SubnodeConfiguration config = getProjectAndStepConfig(p.getProjekt().getTitel(), stepTitle);
+        List<String> imageNatureNames = Arrays.asList(config.getStringArray("imageFolder"));
+        List<Map<String, String>> imageNatureBasenameToNameMap = imageNatureNames.stream()
+                .sorted()
+                .map(folder -> createBasenameToNameMap(p, folder))
                 .collect(Collectors.toList());
 
         DocStruct physDs = p.readMetadataFile().getDigitalDocument().getPhysicalDocStruct();
@@ -85,8 +97,16 @@ public class Handlers {
             } else {
                 id = ds.getAllMetadataByType(prefs.getMetadataTypeByName("physPageNumber")).get(0).getValue();
             }
+            String metsImagename = ds.getImageName();
+            String basename = metsImagename.substring(0, metsImagename.lastIndexOf('.'));
 
-            images.add(new GoobiImage(ds.getImageName(), id, remark, imageNatures));
+            List<ImageNature> imageNatures = new ArrayList<>();
+            for (int i = 0; i < imageNatureNames.size(); i++) {
+                imageNatures.add(new ImageNature(imageNatureNames.get(i),
+                        imageNatureBasenameToNameMap.get(i).get(basename)));
+            }
+
+            images.add(new GoobiImage(basename, id, remark, imageNatures));
         }
 
         //        XMLConfiguration conf = ConfigPlugins.getPluginConfig(title);
@@ -94,10 +114,34 @@ public class Handlers {
         return images;
     };
 
+    public static Map<String, String> createBasenameToNameMap(Process p, String folder) {
+        Map<String, String> basenameToName = new HashMap<String, String>();
+        Path imagesPath = null;
+        try {
+            imagesPath = Paths.get(p.getConfiguredImageFolder(folder));
+        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+            log.error(e);
+        }
+        if (imagesPath == null) {
+            return basenameToName;
+        }
+        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(imagesPath)) {
+            for (Path imagePath : dirStream) {
+                String imageName = imagePath.getFileName().toString();
+                String basename = imageName.substring(0, imageName.lastIndexOf('.'));
+                basenameToName.put(basename, imageName);
+            }
+        } catch (IOException e) {
+            log.error(e);
+        }
+        return basenameToName;
+    }
+
     public static Route deleteImage = (req, res) -> {
         Process p = ProcessManager.getProcessById(Integer.parseInt(req.params("processid")));
-        Path imageDir = Paths.get(p.getImagesOrigDirectory(false));
-        Files.delete(imageDir.resolve(req.params("name")));
+        String folder = req.params("folder");
+        Path imageDir = Paths.get(p.getConfiguredImageFolder(folder));
+        Files.delete(resolveSanitized(imageDir, req.params("name")));
         return "";
     };
 
@@ -146,5 +190,42 @@ public class Handlers {
         p.writeMetadataFile(ff);
         return "";
     };
+
+    public static Path resolveSanitized(Path root, String toResolve) {
+        Path relative = root.resolve(toResolve).normalize();
+        if (!relative.startsWith(root)) {
+            throw new IllegalArgumentException("Path traverses");
+        }
+        return relative;
+    }
+
+    public static SubnodeConfiguration getProjectAndStepConfig(String projectName, String stepTitle) {
+        if (pluginConfig == null) {
+            pluginConfig = ConfigPlugins.getPluginConfig(ReplaceImages.TITLE);
+            pluginConfig.setExpressionEngine(new XPathExpressionEngine());
+            pluginConfig.setReloadingStrategy(new FileChangedReloadingStrategy());
+        }
+
+        SubnodeConfiguration projectAndStepConfig = null;
+        // order of configuration is:
+        // 1.) project name and step name matches
+        // 2.) step name matches and project is *
+        // 3.) project name matches and step name is *
+        // 4.) project name and step name are *
+        try {
+            projectAndStepConfig = pluginConfig.configurationAt("//config[./project = '" + projectName + "'][./step = '" + stepTitle + "']");
+        } catch (IllegalArgumentException e) {
+            try {
+                projectAndStepConfig = pluginConfig.configurationAt("//config[./project = '*'][./step = '" + stepTitle + "']");
+            } catch (IllegalArgumentException e1) {
+                try {
+                    projectAndStepConfig = pluginConfig.configurationAt("//config[./project = '" + projectName + "'][./step = '*']");
+                } catch (IllegalArgumentException e2) {
+                    projectAndStepConfig = pluginConfig.configurationAt("//config[./project = '*'][./step = '*']");
+                }
+            }
+        }
+        return projectAndStepConfig;
+    }
 
 }

@@ -9,8 +9,8 @@ public class Routes {
 
     public static void initRoutes(Service http) {
         http.path("/replaceimages", () -> {
-            http.get("/process/:processid/images", Handlers.allImages, gson::toJson);
-            http.delete("/process/:processid/images/:name", Handlers.deleteImage, gson::toJson);
+            http.get("/process/:processid/:stepId/images", Handlers.allImages, gson::toJson);
+            http.delete("/process/:processid/images/:folder/:name", Handlers.deleteImage, gson::toJson);
             http.put("/process/:processid/images", Handlers.updateImages, gson::toJson);
             http.post("/process/:processid/saveMets", Handlers.saveMets);
         });
