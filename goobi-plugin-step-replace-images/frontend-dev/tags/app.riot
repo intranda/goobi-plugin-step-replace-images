@@ -277,7 +277,7 @@
           return "*".repeat(str.length);
       }
       if(this.state.msgs[str]) {
-        return this.state.msgs[str];
+        return this.state.msgs[str].replace(" zzz", "");
       }
       return "???" + str + "???";
     }
