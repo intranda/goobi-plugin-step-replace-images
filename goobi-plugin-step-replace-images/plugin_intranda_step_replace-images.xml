@@ -1,0 +1,9 @@
+<config_plugin>
+    <config>
+        <project>*</project>
+        <step>*</step>
+
+        <imageFolder>master</imageFolder>
+        <imageFolder>media</imageFolder>
+    </config>
+</config_plugin>
