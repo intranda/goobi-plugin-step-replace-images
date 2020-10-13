@@ -2,10 +2,10 @@
 	<link rel="stylesheet" href="/goobi/plugins/{props.plugin_name}/css/style.css">
 	<div class="box box-color lightgrey box-bordered">
          <div class="box-title">
-             <h3>
+             <h2>
                  <i class="fa fa-puzzle-piece"></i>
                  {msg('plugin_replaceImages')}
-             </h3>
+             </h2>
              <div class="actions">
                 <a 
                     class="btn btn-mini btn-default" 
@@ -47,7 +47,7 @@
                         >
                             <div style="position: relative; display: inline-block">
                                 <span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
-                                <img class="replace-image" src="{imageNature.url}">
+                                <img aria-label="{image.name}" class="replace-image" src="{imageNature.url}">
                             </div>
                         </td>
 						<td>{image.name}</td>
