@@ -12,6 +12,7 @@ public class GoobiImage {
 
     private String id;
     private String remark;
+    private String orderLabel;
 
     private List<ImageNature> natures;
 }

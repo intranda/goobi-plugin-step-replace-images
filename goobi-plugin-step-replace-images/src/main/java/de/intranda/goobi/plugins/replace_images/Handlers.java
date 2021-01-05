@@ -82,6 +82,7 @@ public class Handlers {
 
         MetadataType remarkType = prefs.getMetadataTypeByName("Remark");
         MetadataType idType = prefs.getMetadataTypeByName("ImageIdentifier");
+        MetadataType orderLabelType = prefs.getMetadataTypeByName("logicalPageNumber");
 
         List<GoobiImage> images = new ArrayList<>();
         for (DocStruct ds : physDs.getAllChildren()) {
@@ -89,6 +90,11 @@ public class Handlers {
             List<Metadata> remarkMeta = (List<Metadata>) ds.getAllMetadataByType(remarkType);
             if (remarkMeta != null && !remarkMeta.isEmpty()) {
                 remark = remarkMeta.get(0).getValue();
+            }
+            String orderLabel = "";
+            List<Metadata> orderLabelMeta = (List<Metadata>) ds.getAllMetadataByType(orderLabelType);
+            if (orderLabelMeta != null && !orderLabelMeta.isEmpty()) {
+                orderLabel = orderLabelMeta.get(0).getValue();
             }
             List<Metadata> idMeta = (List<Metadata>) ds.getAllMetadataByType(idType);
             String id = "";
@@ -106,7 +112,7 @@ public class Handlers {
                         imageNatureBasenameToNameMap.get(i).get(basename)));
             }
 
-            images.add(new GoobiImage(basename, id, remark, imageNatures));
+            images.add(new GoobiImage(basename, id, remark, orderLabel, imageNatures));
         }
 
         //        XMLConfiguration conf = ConfigPlugins.getPluginConfig(title);
