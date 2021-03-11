@@ -102,7 +102,7 @@
           this.state.images = json;
           for(let image of this.state.images) {
         	  for(let nature of image.natures) {
-                  let url = `/goobi/api/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
+                  let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
                   nature.url = url;
         	  }
           }
@@ -255,12 +255,12 @@
 		    }).then(() => {
 		        uploadFile.nature.name = uploadFile.newName;
 		        let time = new Date().getTime();
-	    		uploadFile.nature.url = `/goobi/api/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	    		uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    		this.update();
 		    })
 	    } else {
 	        let time = new Date().getTime();
-	        uploadFile.nature.url = `/goobi/api/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	        uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    }
 	    this.uploadNext();
 	    this.update();
