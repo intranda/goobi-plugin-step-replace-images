@@ -106,5 +106,9 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
+</build>
+<scm>
+    <url>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-replace-images.git</url>
+    <connection>scm:git:ssh://git@gitea.intranda.com:goobi-workflow/goobi-plugin-step-replace-images.git</connection>
+  </scm>
 </project>
