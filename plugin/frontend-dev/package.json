@@ -9,7 +9,8 @@
   "author": "Oliver Paetzel",
   "license": "GPL-2.0-or-later",
   "dependencies": {
-    "riot": "^4.3.1"
+    "riot": "^4.3.1",
+    "webpack": "^5.60.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",
@@ -17,7 +18,6 @@
     "@riotjs/compiler": "^4.2.6",
     "@riotjs/webpack-loader": "^4.0.1",
     "babel-loader": "^8.0.6",
-    "filemanager-webpack-plugin": "^2.0.5",
-    "webpack": "^4.34.0"
+    "filemanager-webpack-plugin": "^2.0.5"
   }
 }
