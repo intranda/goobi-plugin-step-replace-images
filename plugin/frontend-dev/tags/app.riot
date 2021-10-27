@@ -11,13 +11,15 @@
                     class="btn btn-mini btn-default" 
                     onclick={leaveAndCloseTask} 
                     title="{msg('task_leavePluginAndFinishTask')}" 
+                    role="button"
                     aria-label="{msg('task_leavePluginAndFinishTask')}" 
                     if={!props.goobi_opts.pluginSimulation}>
                         <i class="fa fa-check"></i>
                 </a>
 				<a 
                     class="btn btn-mini btn-default" 
-                    onclick={leave} title="{msg('plugin_replaceimages_saveAndExit')}" 
+                    onclick={leave} title="{msg('plugin_replaceimages_saveAndExit')}"
+                    role="button" 
                     aria-label="{msg('plugin_replaceimages_saveAndExit')}">
                         <i class="fa fa-close"></i>
                 </a>
