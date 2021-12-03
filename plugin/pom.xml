@@ -5,7 +5,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <properties>
     <jar.name>plugin_intranda_step_replace-images</jar.name>
-    <goobi.version>21.10</goobi.version>
+    <goobi.version>21.11</goobi.version>
   </properties>
   <repositories>
     <repository>
