@@ -121,11 +121,11 @@ public class Handlers {
     };
 
     public static Map<String, String> createBasenameToNameMap(Process p, String folder) {
-        Map<String, String> basenameToName = new HashMap<String, String>();
+        Map<String, String> basenameToName = new HashMap<>();
         Path imagesPath = null;
         try {
             imagesPath = Paths.get(p.getConfiguredImageFolder(folder));
-        } catch (IOException | InterruptedException | SwapException | DAOException e) {
+        } catch (IOException | SwapException | DAOException e) {
             log.error(e);
         }
         if (imagesPath == null) {
