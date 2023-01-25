@@ -27,6 +27,9 @@
          </div>
 
          <div class="box-content" style="background-color:#eee">
+         	<div class="image-count-label" if="{state.images}">
+         		<span>{msg('NumberOfImages')}: {state.images.length}</span>
+         	</div>
 			<table class="table" style="margin-top: 30px;">
 				<thead>
 					<tr>
@@ -50,7 +53,7 @@
                         >
                             <div style="position: relative; display: inline-block">
                                 <span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
-                                <img aria-label="{image.name}" class="replace-image" src="{imageNature.url}">
+                                <img ref="{image.name}" aria-label="{image.name}" class="replace-image" if="#{imageNature.image}" src="{imageNature.image.src}">
                             </div>
                         </td>
 						<td>{image.name}</td>
@@ -86,6 +89,10 @@
     <br>
       
   <script>
+  
+  const _parallelImageLoads = 10;// times 2 because one "image" contains both master and media
+  const _imageLoadDelay = 10;//ms
+  
   import Thumbcanvas from './thumbcanvas.riot'
   export default {
 	components: {
@@ -99,19 +106,43 @@
               errorFiles: []
       };
       console.log(props.goobi_opts)
-      fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
+      
+	fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
         resp.json().then(json => {
-          this.state.images = json;
-          for(let image of this.state.images) {
-        	  for(let nature of image.natures) {
-                  let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
-                  nature.url = url;
-        	  }
-          }
-          console.log(this.state)
-          this.update();
-        })
-      });
+	    this.state.images = json;
+	        let groupedImages = this.groupArray(this.state.images, _parallelImageLoads);
+	        let imageLoadedObservables = rxjs.from(groupedImages)
+            .pipe(
+              rxjs.operators.concatMap(imageGroup => {
+                  let groupObservables = rxjs.from(imageGroup)
+                  .pipe(
+	                	rxjs.operators.mergeMap(image => {
+	                		let promises = [];
+	                		for(let nature of image.natures) {
+	                            let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
+	                            nature.url = url;
+	                            promises.push(new Promise((resolve, reject) => {
+	                            	nature.image = new Image();
+	                            	nature.image.onload = () => resolve(nature.image);
+	                            	nature.image.onerror = e => reject(e);
+	                            	setTimeout(() => nature.image.src = url, _imageLoadDelay);
+	                            }));
+	                  	  }
+	                		//console.log("created promises ", promises);
+	                		return rxjs.from(promises).pipe(rxjs.operators.mergeMap(p => p));
+	                	})
+	              );
+                  return rxjs.forkJoin(groupObservables).pipe(rxjs.operators.map(p => {this.update(); return p;}))
+              })
+      	    );
+
+	       	rxjs.forkJoin(imageLoadedObservables).subscribe(() => {
+		        console.log(this.state)
+		        this.update();       		
+       		});
+      })
+	});
+        
       fetch(`/goobi/api/messages/${props.goobi_opts.language}`, {
           method: 'GET',
           credentials: 'same-origin'
@@ -129,6 +160,20 @@
     },
     onUpdated(props, state) {
       
+    },
+   	/*
+   	* split the given array into smaller arrays of the given groupsize and return an array of all those smaller arrays
+   	*/
+    groupArray(array, groupSize) {
+        let allGroups = array.reduce((groups, item) => {
+            if(groups[groups.length - 1].length < groupSize) {
+                groups[groups.length -1].push(item);
+            } else {
+                groups.push([item]);
+            }
+            return groups;
+        }, [[]]);
+        return allGroups;
     },
     dragLeave(e, image) {
         image.hover = false;

@@ -1,0 +1,17 @@
+Kompilieren des Plugins:
+
+Initial:
+* cd <git-repository-path>/plugin
+* npm install
+* ant
+* tar -C /opt/digiverso/goobi/ -xf target/plugin_intranda_step_replace-images.tar --exclude="pom.xml"
+
+Bei Java-Änderungen:
+* cd <git-repository-path>/plugin
+* ant
+* tar -C /opt/digiverso/goobi/ -xf target/plugin_intranda_step_replace-images.tar --exclude="pom.xml"
+
+Bei html/css/js Änderungen:
+* cd <git-repository-path>/plugin/frontend-dev
+* npx webpack
+

@@ -6,3 +6,8 @@ td.hover {
 	max-width: 200px;
 	max-height: 200px;
 }
+
+.image-count-label {
+	color: red;
+	font-size: 25px;
+}
