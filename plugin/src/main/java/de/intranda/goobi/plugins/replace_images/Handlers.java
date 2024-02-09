@@ -85,34 +85,36 @@ public class Handlers {
         MetadataType orderLabelType = prefs.getMetadataTypeByName("logicalPageNumber");
 
         List<GoobiImage> images = new ArrayList<>();
-        for (DocStruct ds : physDs.getAllChildren()) {
-            String remark = "";
-            List<Metadata> remarkMeta = (List<Metadata>) ds.getAllMetadataByType(remarkType);
-            if (remarkMeta != null && !remarkMeta.isEmpty()) {
-                remark = remarkMeta.get(0).getValue();
-            }
-            String orderLabel = "";
-            List<Metadata> orderLabelMeta = (List<Metadata>) ds.getAllMetadataByType(orderLabelType);
-            if (orderLabelMeta != null && !orderLabelMeta.isEmpty()) {
-                orderLabel = orderLabelMeta.get(0).getValue();
-            }
-            List<Metadata> idMeta = (List<Metadata>) ds.getAllMetadataByType(idType);
-            String id = "";
-            if (idMeta != null && !idMeta.isEmpty()) {
-                id = idMeta.get(0).getValue();
-            } else {
-                id = ds.getAllMetadataByType(prefs.getMetadataTypeByName("physPageNumber")).get(0).getValue();
-            }
-            String metsImagename = ds.getImageName();
-            String basename = metsImagename.substring(0, metsImagename.lastIndexOf('.'));
+        if (physDs.getAllChildren() != null) {
+            for (DocStruct ds : physDs.getAllChildren()) {
+                String remark = "";
+                List<Metadata> remarkMeta = (List<Metadata>) ds.getAllMetadataByType(remarkType);
+                if (remarkMeta != null && !remarkMeta.isEmpty()) {
+                    remark = remarkMeta.get(0).getValue();
+                }
+                String orderLabel = "";
+                List<Metadata> orderLabelMeta = (List<Metadata>) ds.getAllMetadataByType(orderLabelType);
+                if (orderLabelMeta != null && !orderLabelMeta.isEmpty()) {
+                    orderLabel = orderLabelMeta.get(0).getValue();
+                }
+                List<Metadata> idMeta = (List<Metadata>) ds.getAllMetadataByType(idType);
+                String id = "";
+                if (idMeta != null && !idMeta.isEmpty()) {
+                    id = idMeta.get(0).getValue();
+                } else {
+                    id = ds.getAllMetadataByType(prefs.getMetadataTypeByName("physPageNumber")).get(0).getValue();
+                }
+                String metsImagename = ds.getImageName();
+                String basename = metsImagename.substring(0, metsImagename.lastIndexOf('.'));
 
-            List<ImageNature> imageNatures = new ArrayList<>();
-            for (int i = 0; i < imageNatureNames.size(); i++) {
-                imageNatures.add(new ImageNature(imageNatureNames.get(i),
-                        imageNatureBasenameToNameMap.get(i).get(basename)));
-            }
+                List<ImageNature> imageNatures = new ArrayList<>();
+                for (int i = 0; i < imageNatureNames.size(); i++) {
+                    imageNatures.add(new ImageNature(imageNatureNames.get(i),
+                            imageNatureBasenameToNameMap.get(i).get(basename)));
+                }
 
-            images.add(new GoobiImage(basename, id, remark, orderLabel, imageNatures));
+                images.add(new GoobiImage(basename, id, remark, orderLabel, imageNatures));
+            }
         }
 
         //        XMLConfiguration conf = ConfigPlugins.getPluginConfig(title);

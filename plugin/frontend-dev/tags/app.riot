@@ -53,7 +53,7 @@
                         >
                             <div style="position: relative; display: inline-block">
                                 <span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
-                                <img ref="{image.name}" aria-label="{image.name}" class="replace-image" if="#{imageNature.image}" src="{imageNature.image.src}">
+                                <img ref="{image.name}" aria-label="{image.name}" class="replace-image" if="#{imageNature.image}" src="{imageNature.url}">
                             </div>
                         </td>
 						<td>{image.name}</td>
@@ -92,7 +92,7 @@
   
   const _parallelImageLoads = 10;// times 2 because one "image" contains both master and media
   const _imageLoadDelay = 0;//ms
-  
+  const a = "1";
   import Thumbcanvas from './thumbcanvas.riot'
   export default {
 	components: {
@@ -119,14 +119,17 @@
 	                	rxjs.operators.mergeMap(image => {
 	                		let promises = [];
 	                		for(let nature of image.natures) {
-	                            let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
-	                            nature.url = url;
-	                            promises.push(new Promise((resolve, reject) => {
-	                            	nature.image = new Image();
-	                            	nature.image.onload = () => resolve(nature.image);
-	                            	nature.image.onerror = e => reject(e);
-	                            	setTimeout(() => nature.image.src = url, _imageLoadDelay);
-	                            }));
+	                			if(nature.name) {
+		                            let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
+		                            nature.url = url;
+		                            promises.push(new Promise((resolve, reject) => {
+		                            	nature.image = new Image();
+		                            	nature.image.onload = () => resolve(nature.image);
+		                            	nature.image.onerror = e => reject(e);
+		                            	setTimeout(() => nature.image.src = url, _imageLoadDelay);
+		                            }));
+	                				
+	                			}
 	                  	  }
 	                		//console.log("created promises ", promises);
 	                		return rxjs.from(promises).pipe(rxjs.operators.mergeMap(p => p));
@@ -180,14 +183,13 @@
         this.update();
     },
     allowDrop(e, image) {
-    	console.log("what is happening here??")
 	    e.preventDefault();
 	    image.hover = true;
 	    this.update();
 	},
 	onDrop(e, image, imageNature) {
 	    e.preventDefault();
-	    console.log(image, imageNature);
+	    console.log("dropped", image, imageNature);
 	    imageNature.hover = false;
 	    let files = e.dataTransfer.files;
 	    let foundIdx = -1;
@@ -207,7 +209,7 @@
 	            let newFileNameSuffix = fileToUpload.name.substring(fileToUpload.name.lastIndexOf("."));
 	            fileToUpload.newName = otherIm.name + newFileNameSuffix;
 	            this.state.uploadFiles.push(fileToUpload);
-	            console.log(otherIm, files[idx-foundIdx])
+	            console.log("new file", otherIm, files[idx-foundIdx])
 	        }
 	    }
 	    this.uploadNext();
@@ -286,8 +288,8 @@
 	},
 	finishCurrentUpload(e) {
 		this.update();
-	    console.log(e);
 	    let uploadFile = this.state.uploadFiles[e.target.uploadIdx];
+	    console.log("finishCurrentUpload", uploadFile);
     	uploadFile.done = true;
 	    if(e.target.status >= 400) {
 	        console.log("error detected!")
@@ -297,7 +299,8 @@
 	    }
 	    //TODO: remove old filename and update METS
 	    if(uploadFile.nature.name != uploadFile.newName) {
-		    fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.nature.folder}/${uploadFile.nature.name}`, {
+	    	console.log("replace image of different name")
+	    	fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.nature.folder}/${uploadFile.nature.name}`, {
 		        method: "DELETE"
 		    }).then(() => {
 		        uploadFile.nature.name = uploadFile.newName;
@@ -306,10 +309,15 @@
 	    		this.update();
 		    })
 	    } else {
+	    	console.log("replace image of same name")  
 	        let time = new Date().getTime();
 	        uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    }
 	    this.uploadNext();
+	    replaceImageNature
+	    console.log("uploadFile", uploadFile, uploadFile.nature.url);
+	    console.log("uploadFiles", this.state.uploadFiles);
+	    console.log("images", this.state.images);
 	    this.update();
 	},
 	errorOnCurrent(e) {
