@@ -1,95 +1,99 @@
 <app>
-	<link rel="stylesheet" href="/goobi/plugins/{props.plugin_name}/css/style.css">
-	<div class="box box-color lightgrey box-bordered">
-         <div class="box-title">
-             <h2>
-                 <i class="fa fa-puzzle-piece"></i>
-                 {msg('plugin_replaceImages')}
-             </h2>
-             <div class="actions">
-                <a 
-                    class="btn btn-mini btn-default" 
-                    onclick={leaveAndCloseTask} 
-                    title="{msg('task_leavePluginAndFinishTask')}" 
-                    role="button"
-                    aria-label="{msg('task_leavePluginAndFinishTask')}" 
-                    if={!props.goobi_opts.pluginSimulation}>
-                        <i class="fa fa-check"></i>
-                </a>
-				<a 
-                    class="btn btn-mini btn-default" 
-                    onclick={leave} title="{msg('plugin_replaceimages_saveAndExit')}"
-                    role="button" 
-                    aria-label="{msg('plugin_replaceimages_saveAndExit')}">
-                        <i class="fa fa-close"></i>
-                </a>
-             </div>
-         </div>
+	<div class="box box--action box--padded form-box">
+		<div class="box__content">
+			<div class="box__title">
+				<h2>
+					<span class="fa fa-puzzle-piece"></span>
+					{msg('plugin_replaceImages')}
+				</h2>
+				<div class="actions d-flex">
+					<a
+						class="btn d-flex align-items-center btn--title-action"
+						onclick={leaveAndCloseTask}
+						title="{msg('task_leavePluginAndFinishTask')}"
+						role="button"
+						aria-label="{msg('task_leavePluginAndFinishTask')}"
+						if={!props.goobi_opts.pluginSimulation}>
+							<i class="fa fa-check"></i>
+					</a>
+					<a
+						class="btn d-flex align-items-center btn--title-action"
+						onclick={leave}
+						title="{msg('plugin_replaceimages_saveAndExit')}"
+						role="button"
+						aria-label="{msg('plugin_replaceimages_saveAndExit')}">
+							<i class="fa fa-close"></i>
+					</a>
+				</div>
+			</div>
 
-         <div class="box-content" style="background-color:#eee">
-         	<div class="image-count-label" if="{state.images}">
-         		<span>{msg('NumberOfImages')}: {state.images.length}</span>
-         	</div>
-			<table class="table" style="margin-top: 30px;">
-				<thead>
-					<tr>
-						<th each={imageNature in state.images[0].natures}>
-                            {msg('images')} ({imageNature.folder})
-                        </th>
-						<th>{msg('plugin_replaceimages_filename')}</th>
-						<th>ID</th>
-						<th>{msg('plugin_replaceimages_remark')}</th>
-						<th>{msg('plugin_replaceimages_orderLabel')}</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr each={image in state.images}>
-                        
-						<td each={imageNature in image.natures}
-                            class="{imageNature.hover ? 'hover' : ''}" 
-                            ondragover={e => allowDrop(e, imageNature)}
-                            ondrop={e => onDrop(e, image, imageNature)}
-                            ondragleave={e => dragLeave(e, imageNature)}
-                        >
-                            <div style="position: relative; display: inline-block">
-                                <span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
-                                <img ref="{image.name}" aria-label="{image.name}" class="replace-image" if="#{imageNature.image}" src="{imageNature.url}">
-                            </div>
-                        </td>
-						<td>{image.name}</td>
-						<td>{image.id}</td>
-						<td>{image.remark}</td>
-						<td>{image.orderLabel}</td>
-					</tr>
-				</tbody>
-			</table>
+			<div class="box__body">
+				<div class="display-6 mb-5" if="{state.images}">
+					<span>{msg('NumberOfImages')}: {state.images.length}</span>
+				</div>
+				<div class="gw-table">
+					<div class="gw-table">
+						<div class="gw-table__wrapper">
+							<table class="table table-bordered table-hover">
+								<thead>
+									<tr role="row">
+										<th scope="col" role="columnheader" aria-sort="none" each={imageNature in state.images[0].natures}>
+											{msg('images')} ({imageNature.folder})
+										</th>
+										<th class="header__col-min-xl" scope="col" role="columnheader" aria-sort="none">{msg('plugin_replaceimages_filename')}</th>
+										<th class="header__col-min-xl" scope="col" role="columnheader" aria-sort="none">ID</th>
+										<th class="header__col-min-xl" scope="col" role="columnheader" aria-sort="none">{msg('plugin_replaceimages_remark')}</th>
+										<th class="header__col-min-xl" scope="col" role="columnheader" aria-sort="none">{msg('plugin_replaceimages_orderLabel')}</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr each={image in state.images} role="row">
+
+										<td each={imageNature in image.natures}
+											class="{imageNature.hover ? 'hover' : ''}"
+											ondragover={e => allowDrop(e, imageNature)}
+											ondrop={e => onDrop(e, image, imageNature)}
+											ondragleave={e => dragLeave(e, imageNature)}>
+											<div style="position: relative; display: inline-block">
+												<span if={imageNature.uploaded} style="position:absolute; bottom:0; left: 0; right: 0; height: {imageNature.uploaded}%; background: rgba(0,0,0,0.3)"></span>
+												<img ref="{image.name}" aria-label="{image.name}" class="mw-100" if="#{imageNature.image}" src="{imageNature.url}">
+											</div>
+										</td>
+										<td>{image.name}</td>
+										<td>{image.id}</td>
+										<td>{image.remark}</td>
+										<td>{image.orderLabel}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+					<div class="box__actions">
+						<!-- Save and finish the task -->
+						<a class="btn btn-success"
+							id="finishAndClose"
+							onclick={leaveAndCloseTask}
+							title="{msg('task_leavePluginAndFinishTask')}"
+							if={!props.goobi_opts.pluginSimulation}>
+							<span class="fa fa-check"></span>
+							<span>{msg('task_leavePluginAndFinishTask')}</span>
+						</a>
+
+						<!-- Save -->
+						<a class="btn btn-blank"
+							id="absenden"
+							onclick={leave}
+							title="{msg('pluginLeave')}">
+							<span>{msg('pluginLeave')}</span>
+						</a>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
-    <br>
-    
-    <!-- Save and finish the task -->
-    <a class="btn btn-green font-size-s" 
-        id="finishAndClose" 
-        onclick={leaveAndCloseTask} 
-        title="{msg('task_leavePluginAndFinishTask')}" 
-        if={!props.goobi_opts.pluginSimulation}>
-        <i class="fa fa-check margin-right-5"></i>
-        {msg('task_leavePluginAndFinishTask')}
-    </a>
-     
-    <!-- Save -->
-    <a class="btn btn-lightgrey pull-right font-size-s" 
-        id="absenden" 
-        onclick={leave}
-        title="{msg('pluginLeave')}">
-        <i class="fa fa-close margin-right-5"></i>
-        {msg('pluginLeave')}
-    </a>
-    <br>
-    <br>
-      
+
   <script>
-  
+
   const _parallelImageLoads = 10;// times 2 because one "image" contains both master and media
   const _imageLoadDelay = 0;//ms
   const a = "1";
@@ -106,7 +110,7 @@
               errorFiles: []
       };
       console.log(props.goobi_opts)
-      
+
 	fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
         resp.json().then(json => {
 	    this.state.images = json;
@@ -128,7 +132,7 @@
 		                            	nature.image.onerror = e => reject(e);
 		                            	setTimeout(() => nature.image.src = url, _imageLoadDelay);
 		                            }));
-	                				
+
 	                			}
 	                  	  }
 	                		//console.log("created promises ", promises);
@@ -141,11 +145,11 @@
 
 	       	rxjs.forkJoin(imageLoadedObservables).subscribe(() => {
 		        console.log(this.state)
-		        this.update();       		
+		        this.update();
        		});
       })
 	});
-        
+
       fetch(`/goobi/api/messages/${props.goobi_opts.language}`, {
           method: 'GET',
           credentials: 'same-origin'
@@ -162,7 +166,7 @@
     onBeforeUpdate(props, state) {
     },
     onUpdated(props, state) {
-      
+
     },
    	/*
    	* split the given array into smaller arrays of the given groupsize and return an array of all those smaller arrays
@@ -281,7 +285,7 @@
 	    let percentLoaded = (e.loaded/e.total) * 100;
 	    if(percentLoaded == 100) {
 	    	percentLoaded = null;
-	    } 
+	    }
     	//this.state.images[uploadFile.origImageIdx].uploaded = percentLoaded;
     	uploadFile.nature.uploaded = percentLoaded;
 	    this.update();
@@ -309,12 +313,11 @@
 	    		this.update();
 		    })
 	    } else {
-	    	console.log("replace image of same name")  
+	    	console.log("replace image of same name")
 	        let time = new Date().getTime();
 	        uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    }
 	    this.uploadNext();
-	    replaceImageNature
 	    console.log("uploadFile", uploadFile, uploadFile.nature.url);
 	    console.log("uploadFiles", this.state.uploadFiles);
 	    console.log("images", this.state.images);

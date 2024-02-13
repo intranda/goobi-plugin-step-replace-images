@@ -29,7 +29,7 @@ public class ReplaceImages implements IRestGuiPlugin {
 
     @Override
     public void extractAssets(Path assetsDir) {
-        String[] paths = new String[] { "css/style.css", "js/app.js" };
+        String[] paths = new String[] { "js/app.js" };
         for (String p : paths) {
             extractFile(p, assetsDir);
         }
