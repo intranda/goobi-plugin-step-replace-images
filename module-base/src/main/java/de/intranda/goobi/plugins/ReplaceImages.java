@@ -11,44 +11,24 @@ import org.goobi.beans.Step;
 import org.goobi.production.enums.PluginGuiType;
 import org.goobi.production.enums.PluginType;
 import org.goobi.production.enums.StepReturnValue;
+import org.goobi.production.plugin.interfaces.IGuiPlugin;
 import org.goobi.production.plugin.interfaces.IRestGuiPlugin;
 
 import de.intranda.goobi.plugins.replace_images.Routes;
 import lombok.Data;
 import lombok.extern.log4j.Log4j;
 import net.xeoh.plugins.base.annotations.PluginImplementation;
+import org.goobi.production.plugin.interfaces.IRestPlugin;
+import org.goobi.production.plugin.interfaces.IStepPlugin;
 import spark.Service;
 
 @Data
 @PluginImplementation
 @Log4j
-public class ReplaceImages implements IRestGuiPlugin {
+public class ReplaceImages implements IRestPlugin, IGuiPlugin, IStepPlugin {
     private Step step;
     private String returnPath;
     public static String TITLE = "intranda_step_replace-images";
-
-    @Override
-    public void extractAssets(Path assetsDir) {
-        String[] paths = new String[] { "js/app.js" };
-        for (String p : paths) {
-            extractFile(p, assetsDir);
-        }
-    }
-
-    private void extractFile(String filePath, Path assetsDir) {
-        Path out = assetsDir.resolve("plugins").resolve(TITLE).resolve(filePath);
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("/frontend/" + filePath)) {
-            if (!Files.exists(out.getParent())) {
-                Files.createDirectories(out.getParent());
-            }
-            if (is != null) {
-                Files.copy(is, out, StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            log.error(e);
-        }
-    }
 
     @Override
     public String cancel() {
@@ -67,7 +47,7 @@ public class ReplaceImages implements IRestGuiPlugin {
 
     @Override
     public String getPagePath() {
-        return "/uii/guiPlugin.xhtml";
+        return "/uii/guiPluginNew.xhtml";
     }
 
     @Override
@@ -97,13 +77,12 @@ public class ReplaceImages implements IRestGuiPlugin {
 
     @Override
     public String[] getJsPaths() {
-        return new String[] { "js/app.js" };
+        return new String[] { "app.js" };
     }
 
     @Override
     public void initRoutes(Service http) {
         Routes.initRoutes(http);
-
     }
 
     @Override
