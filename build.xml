@@ -5,7 +5,7 @@
 		<exec executable="mvn">
 			<arg value="package" />
 		</exec>
-		<copy file="target/plugin_intranda_step_replace-images.jar" todir="/opt/digiverso/goobi/plugins/step/"/>
+		<copy file="module-base/target/plugin-step-replace-images-base.jar" todir="/opt/digiverso/goobi/plugins/step/"/>
 		<exec executable="curl">
 			<arg value="-X"/>
 			<arg value="PUT"/>
