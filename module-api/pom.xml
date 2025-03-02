@@ -5,6 +5,6 @@
     <artifactId>plugin-step-replace-images</artifactId>
     <version>25.02</version>
   </parent>
-  <artifactId>plugin-step-replace-images-base</artifactId>
+  <artifactId>plugin-step-replace-images-api</artifactId>
   <packaging>jar</packaging>
 </project>

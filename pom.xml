@@ -3,13 +3,14 @@
   <parent>
     <groupId>io.goobi.workflow</groupId>
     <artifactId>workflow-base</artifactId>
-    <version>24.12</version>
+    <version>25.02</version>
     <relativePath />
   </parent>
   <groupId>io.goobi.workflow.plugin</groupId>
   <artifactId>plugin-step-replace-images</artifactId>
   <packaging>pom</packaging>
   <modules>
+    <module>module-api</module>
     <module>module-base</module>
     <module>module-gui</module>
   </modules>

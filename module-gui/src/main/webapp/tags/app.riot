@@ -98,6 +98,7 @@
   const _imageLoadDelay = 0;//ms
   const a = "1";
   import Thumbcanvas from './thumbcanvas.riot'
+  const goobi_path = location.pathname.split('/')[1];
   export default {
 	components: {
 		Thumbcanvas
@@ -111,7 +112,7 @@
       };
       console.log(props.goobi_opts)
 
-	fetch(`/goobi/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
+	fetch(`/${goobi_path}/api/plugins/replaceimages/process/${props.goobi_opts.processId}/${props.goobi_opts.stepId}/images`).then(resp => {
         resp.json().then(json => {
 	    this.state.images = json;
 	        let groupedImages = this.groupArray(this.state.images, _parallelImageLoads);
@@ -124,7 +125,7 @@
 	                		let promises = [];
 	                		for(let nature of image.natures) {
 	                			if(nature.name) {
-		                            let url = `/goobi/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
+		                            let url = `/${goobi_path}/api/process/image/${props.goobi_opts.processId}/${nature.folder}/${nature.name}/full/!200,200/0/default.jpg`;
 		                            nature.url = url;
 		                            promises.push(new Promise((resolve, reject) => {
 		                            	nature.image = new Image();
@@ -150,7 +151,7 @@
       })
 	});
 
-      fetch(`/goobi/api/messages/${props.goobi_opts.language}`, {
+      fetch(`/${goobi_path}/api/messages/${props.goobi_opts.language}`, {
           method: 'GET',
           credentials: 'same-origin'
       }).then(resp => {
@@ -235,7 +236,7 @@
 	                id: uploadFile.origImage.id
 	            })
 	        }
-	        fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images`, {
+	        fetch(`/${goobi_path}/api/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images`, {
 		        method: "PUT",
 		        body: JSON.stringify(newImages)
 		    })
@@ -266,7 +267,7 @@
 	    formData.append("file", fileToUpload);
 	    formData.append("filename", fileToUpload.newName)
 	    var xhr = new XMLHttpRequest();
-	    xhr.open("POST", `/goobi/api/processes/${this.props.goobi_opts.processId}/images/${fileToUpload.nature.folder}`);
+	    xhr.open("POST", `/${goobi_path}/api/processes/${this.props.goobi_opts.processId}/images/${fileToUpload.nature.folder}`);
 	    xhr.uploadIdx = idx;
 	    xhr.upload.uploadIdx = idx;
 	    xhr.onerror = this.errorOnCurrent.bind(this);
@@ -304,18 +305,18 @@
 	    //TODO: remove old filename and update METS
 	    if(uploadFile.nature.name != uploadFile.newName) {
 	    	console.log("replace image of different name")
-	    	fetch(`/goobi/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.nature.folder}/${uploadFile.nature.name}`, {
+	    	fetch(`/${goobi_path}/api/plugins/replaceimages/process/${this.props.goobi_opts.processId}/images/${uploadFile.nature.folder}/${uploadFile.nature.name}`, {
 		        method: "DELETE"
 		    }).then(() => {
 		        uploadFile.nature.name = uploadFile.newName;
 		        let time = new Date().getTime();
-	    		uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	    		uploadFile.nature.url = `/${goobi_path}/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    		this.update();
 		    })
 	    } else {
 	    	console.log("replace image of same name")
 	        let time = new Date().getTime();
-	        uploadFile.nature.url = `/goobi/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
+	        uploadFile.nature.url = `/${goobi_path}/api/process/image/${this.props.goobi_opts.processId}/${uploadFile.nature.folder}/${uploadFile.newName}/full/!200,200/0/default.jpg?d=${time}`;
 	    }
 	    this.uploadNext();
 	    console.log("uploadFile", uploadFile, uploadFile.nature.url);
