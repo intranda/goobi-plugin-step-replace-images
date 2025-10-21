@@ -3,6 +3,10 @@ title: Replace images
 identifier: intranda_step_replace-images
 published: true
 description: This step plugin for Goobi workflow is used to replace placeholder images within the master folder.
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Step Plugin
 ---
 ## Introduction
 This plugin is used to replace previously imported placeholder images within the master folder of a Goobi workflow process with the actual master images. The plugin is operated by simply dragging and dropping the required files into the plugin's user interface.
