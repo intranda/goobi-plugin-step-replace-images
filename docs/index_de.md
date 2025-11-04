@@ -3,6 +3,10 @@ title: Ersetzen von Bildern
 identifier: intranda_step_replace-images
 published: true
 description: Dieses Step Plugin für Goobi workflow dient zum Ersetzen von Platzhalterbildern innerhalb des Master-Ordners.
+keywords:
+    - Goobi workflow
+    - Plugin
+    - Step Plugin
 ---
 ## Einführung
 Dieses Plugin dient zum Ersetzen von zuvor eingespielten Platzhalterbildern innerhalb des Master-Ordners eines Vorgangs von Goobi workflow durch die tatsächlichen Master-Bilder. Die Bedienung des Plugins erfolgt über einfaches Drag & Drop der gewünschten Dateien in die Nutzeroberfläche des Plugins.
