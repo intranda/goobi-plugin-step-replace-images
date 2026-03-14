@@ -19,7 +19,7 @@ Dieses Plugin wird als `tar`-Archiv ausgeliefert. Um es zu installieren, muss da
 tar -C /opt/digiverso/goobi/ -xf plugin-intranda-step-replace-images.tar --exclude="pom.xml"
 ```
 
-Dieses Plugin verfügt ausserdem über eine Konfigurationsdatei mit dem Namen `plugin_intranda_step_replace-images.xml`. Sie muss unter folgendem Pfad abgelegt werden:
+Dieses Plugin verfügt außerdem über eine Konfigurationsdatei mit dem Namen `plugin_intranda_step_replace-images.xml`. Sie muss unter folgendem Pfad abgelegt werden:
 
 ```bash
 /opt/digiverso/goobi/config/plugin_intranda_step_replace-images.xml
