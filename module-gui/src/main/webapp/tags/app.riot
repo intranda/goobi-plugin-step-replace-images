@@ -3,7 +3,7 @@
 		<div class="box__content">
 			<div class="box__title">
 				<h2>
-					<span class="fa fa-puzzle-piece"></span>
+					<span class="icon-wrapper"><svg><use href="{GoobiIcons.iconHref('puzzle')}" /></svg></span>
 					{msg('plugin_replaceImages')}
 				</h2>
 				<div class="actions d-flex">
@@ -14,7 +14,7 @@
 						role="button"
 						aria-label="{msg('task_leavePluginAndFinishTask')}"
 						if={!props.goobi_opts.pluginSimulation}>
-							<i class="fa fa-check"></i>
+							<span class="icon-wrapper" aria-hidden="true"><svg><use href="{GoobiIcons.iconHref('check')}" /></svg></span>
 					</a>
 					<a
 						class="btn d-flex align-items-center btn--title-action"
@@ -22,7 +22,7 @@
 						title="{msg('plugin_replaceimages_saveAndExit')}"
 						role="button"
 						aria-label="{msg('plugin_replaceimages_saveAndExit')}">
-							<i class="fa fa-close"></i>
+							<span class="icon-wrapper" aria-hidden="true"><svg><use href="{GoobiIcons.iconHref('x')}" /></svg></span>
 					</a>
 				</div>
 			</div>
@@ -75,7 +75,7 @@
 							onclick={leaveAndCloseTask}
 							title="{msg('task_leavePluginAndFinishTask')}"
 							if={!props.goobi_opts.pluginSimulation}>
-							<span class="fa fa-check"></span>
+							<span class="icon-wrapper" aria-hidden="true"><svg><use href="{GoobiIcons.iconHref('check')}" /></svg></span>
 							<span>{msg('task_leavePluginAndFinishTask')}</span>
 						</a>
 
